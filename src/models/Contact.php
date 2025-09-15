@@ -1,5 +1,5 @@
 <?php
-require_once '../config/db.php';
+require_once __DIR__ . '/../config/db.php';
 
 class Contact {
     private $pdo;
@@ -26,6 +26,6 @@ class Contact {
     public function deleteContact($userId, $contactId) {
     $stmt = $this->pdo->prepare("DELETE FROM contacts WHERE id_contact = ? AND id_user = ?");
     $stmt->execute([$contactId, $userId]);
-}
+    }
 
 }

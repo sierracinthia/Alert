@@ -18,6 +18,6 @@ class DashboardController {
         $alerts = $locationModel->getAlertsByUser($_SESSION['user_id']);
 
         // Pasamos datos a la vista
-        require '../views/dashboard.php';
+        require __DIR__ . '/../views/dashboard.php';
     }
 }

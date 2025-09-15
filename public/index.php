@@ -1,9 +1,9 @@
 <?php
     session_start();
-    require_once __DIR__ . '/../controllers/AuthController.php';
-    require_once __DIR__ . '/../controllers/DashboardController.php';
-    require_once __DIR__ . '/../controllers/ContactController.php';
-    require_once __DIR__ . '/../controllers/AlertController.php';
+    require_once __DIR__ . '/../src/controllers/AuthController.php';
+    require_once __DIR__ . '/../src/controllers/DashboardController.php';
+    require_once __DIR__ . '/../src/controllers/ContactController.php';
+    require_once __DIR__ . '/../src/controllers/AlertController.php';
 
 
 

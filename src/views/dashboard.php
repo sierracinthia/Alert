@@ -87,7 +87,7 @@ if (!isset($_SESSION['user_id'])) {
 
 
     <section id="contacts" class="tab-section" style="display:none;">
-        <?php include 'contacts.php'; ?>
+        <?php include __DIR__ . '/contacts.php'; ?>
     </section>
 
     <section id="alerts" class="tab-section" style="display:none;">
