@@ -11,24 +11,23 @@ class AlertController {
 
         header('Content-Type: application/json');
 
+     //   $id_user = 1; // ID de usuario de prueba        
+    // $username = 'UsuarioPrueba';
 
-        $id_user = 1; // ID de usuario de prueba
-        
-        $username = 'UsuarioPrueba';
-      //$id_user = $_SESSION['user_id'] ?? null;
-       //$username = $_SESSION['username'] ?? 'Usuario';
+    $id_user = $_SESSION['user_id'] ?? null;
+    $username = $_SESSION['username'] ?? 'Usuario';
 
-       //if (!$id_user) {
-        //echo json_encode(['status' => 'error', 'message' => 'Usuario no autenticado']);
-        //return;
-        //}
 
         $input = json_decode(file_get_contents('php://input'), true);
+
         if (!$input) $input = [];
 
         $source = $input['source'] ?? null;
         $latitude = null;
         $longitude = null;
+
+        $id_user = $_SESSION['user_id'] ?? ($source === 'device' ? 1 : null);
+        $username = $_SESSION['username'] ?? ($source === 'device' ? 'UsuarioPrueba' : 'Usuario');
 
         try {
             // Determinar origen
