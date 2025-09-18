@@ -41,7 +41,9 @@
             }
 
             $lastTimestamp = $currentTimestamp;
-        }
+        } else {
+        echo "[" . date("Y-m-d H:i:s") . "] Error: respuesta inválida o sin timestamp\n";
+    }
 
         sleep(10); // Espera 10 segundos antes de volver a consultar
     }
