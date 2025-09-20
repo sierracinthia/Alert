@@ -5,10 +5,9 @@ class Contact {
     private $pdo;
 
     public function __construct() {
-        //require_once __DIR__ . '/../config/db.php';
-        $this->pdo = conectar(); // 👈 crear la conexión directamente
+        $this->pdo = conectar();
         if (!$this->pdo) {
-            die("Error: no se pudo conectar a la base de datos");
+            throw new Exception("No se pudo conectar a la base de datos");
         }
     }
 
@@ -24,8 +23,8 @@ class Contact {
     }
 
     public function deleteContact($userId, $contactId) {
-    $stmt = $this->pdo->prepare("DELETE FROM contacts WHERE id_contact = ? AND id_user = ?");
-    $stmt->execute([$contactId, $userId]);
+        $stmt = $this->pdo->prepare("DELETE FROM contacts WHERE id_contact = ? AND id_user = ?");
+        $stmt->execute([$contactId, $userId]);
     }
-
 }
+?>

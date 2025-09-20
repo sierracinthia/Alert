@@ -1,9 +1,9 @@
 <?php
-// controllers/AlertController.php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../models/Location.php';
 require_once __DIR__ . '/../models/Contact.php';
-//session_estart(); 
+require_once __DIR__ . '/../services/send.php';
+
 class AlertController {
 
     public function send() {
@@ -11,122 +11,75 @@ class AlertController {
 
         header('Content-Type: application/json');
 
-     //   $id_user = 1; // ID de usuario de prueba        
-    // $username = 'UsuarioPrueba';
-
-    $id_user = $_SESSION['user_id'] ?? null;
-    $username = $_SESSION['username'] ?? 'Usuario';
-
-
-        $input = json_decode(file_get_contents('php://input'), true);
-
-        if (!$input) $input = [];
-
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $source = $input['source'] ?? null;
+
+        // Determinar usuario
+       //$id_user = $_SESSION['user_id'] ?? 1;           // Usuario de prueba si no hay sesión
+       // $username = $_SESSION['username'] ?? 'UsuarioPrueba';
+        $id_user = $_SESSION['user_id'] ?? null;
+        $username = $_SESSION['username'] ?? 'Usuario'; 
+       
+       if (isset($input['id_user'])) $id_user = intval($input['id_user']);
+
         $latitude = null;
         $longitude = null;
 
-        $id_user = $_SESSION['user_id'] ?? ($source === 'device' ? 1 : null);
-        $username = $_SESSION['username'] ?? ($source === 'device' ? 'UsuarioPrueba' : 'Usuario');
-
         try {
-            // Determinar origen
+            if (!$id_user) throw new Exception("No se pudo determinar id_user");
+
+            $locationModel = new Location();
+
+            // Determinar origen de la alerta
             if ($source === 'device') {
-                $locationModel = new Location();
                 $gpsData = $locationModel->getGPSNow($id_user);
-
-                if (!$gpsData || !isset($gpsData['latitude'], $gpsData['longitude'])) {
-                    echo json_encode([
-                        'status' => 'error',
-                        'message' => 'No se pudo obtener ubicación del GPS',
-                        'input' => $input,
-                        'gpsData' => $gpsData
-                    ]);
-                    return;
-                }
-
+                if (!$gpsData) throw new Exception('No se pudo obtener ubicación del GPS');
                 $latitude = $gpsData['latitude'];
                 $longitude = $gpsData['longitude'];
-
             } elseif (isset($input['latitude'], $input['longitude'])) {
                 $latitude = floatval($input['latitude']);
                 $longitude = floatval($input['longitude']);
                 $source = 'web';
             } else {
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Datos de ubicación incompletos',
-                    'input' => $input
-                ]);
-                return;
+                throw new Exception('Datos de ubicación incompletos');
             }
 
             // Guardar alerta en DB
-            $pdo = conectar();
-            if (!$pdo) {
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'No se pudo conectar a la DB',
-                    'input' => $input
-                ]);
-                return;
-            }
+            $locationModel->addAlert($id_user, $latitude, $longitude);
 
-            $stmt = $pdo->prepare(
-                "INSERT INTO alerts (id_user, latitude, longitude) VALUES (?, ?, ?)"
-            );
-            $stmt->execute([$id_user, $latitude, $longitude]);
+            // Obtener contactos del usuario
+            $contacts = $locationModel->getContactsByUser($id_user);
 
-            // Obtener contactos
-            $stmt = $pdo->prepare("SELECT contact_email, name FROM contacts WHERE id_user = ?");
-            $stmt->execute([$id_user]);
-            $contacts = $stmt->fetchAll();
-            cerrarConexion($pdo);
-
-            // Notificar contactos (FastAPI)
-            $urlFastAPI = "http://149.50.133.15:8026/confirm";
+            $sendErrors = [];
             foreach ($contacts as $contact) {
-                $email = $contact['contact_email'];
-                $name = $contact['name'];
-
-                $data = [
-                    "email" => $email,
-                    "asunto" => "Alerta de ubicación de $username",
-                    "cuerpo" => "<p>Hola $name,</p>
-                                 <p>$username ha enviado una alerta.</p>
-                                 <p>Ubicación: <strong>Lat:</strong> $latitude, <strong>Lng:</strong> $longitude</p>
-                                 <p>Origen: <strong>$source</strong></p>"
-                ];
-
-                $options = [
-                    'http' => [
-                        'header'  => "Content-Type: application/json\r\n",
-                        'method'  => 'POST',
-                        'content' => json_encode($data),
-                        'timeout' => 5
-                    ]
-                ];
-
-                $context = stream_context_create($options);
-                @file_get_contents($urlFastAPI, false, $context);
+                $result = sendAlertEmail(
+                    $contact['contact_email'],
+                    $contact['name'],
+                    $username,
+                    $latitude,
+                    $longitude,
+                    $source
+                );
+                if (!$result) $sendErrors[] = $contact['contact_email'];
             }
 
+            // Devolver JSON válido
             echo json_encode([
                 'status' => 'ok',
                 'message' => 'Alerta enviada correctamente',
                 'latitude' => $latitude,
                 'longitude' => $longitude,
                 'source' => $source,
-                'input_received' => $input
+                'input_received' => $input,
+                'sendErrors' => $sendErrors
             ]);
 
         } catch (Exception $e) {
-            // Devuelve toda la info para depuración desde el dashboard
+            // Captura cualquier error y devuelve JSON limpio
+            error_log("Error en AlertController::send - " . $e->getMessage());
             echo json_encode([
                 'status' => 'error',
-                'message' => 'Error al enviar alerta',
-                'exception' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'message' => $e->getMessage(),
                 'input_received' => $input
             ]);
         }

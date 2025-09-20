@@ -7,28 +7,27 @@ class Location {
 
     public function __construct() {
         $this->pdo = conectar();
+        if (!$this->pdo) {
+            throw new Exception("No se pudo conectar a la base de datos");
+        }
+        
+        date_default_timezone_set('America/Argentina/Buenos_Aires');
+
     }
 
-    /**
-     * Guardar alerta en DB
-     */
     public function addAlert($userId, $lat, $lng) {
+                $sentAt = date('Y-m-d H:i:s'); // hora local
+
         $stmt = $this->pdo->prepare("INSERT INTO alerts (id_user, latitude, longitude) VALUES (?, ?, ?)");
         $stmt->execute([$userId, $lat, $lng]);
     }
 
-    /**
-     * Obtener historial de alertas por usuario
-     */
     public function getAlertsByUser($userId) {
         $stmt = $this->pdo->prepare("SELECT * FROM alerts WHERE id_user = ? ORDER BY sent_at DESC");
         $stmt->execute([$userId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Obtener ubicación actual del GPS físico
-     */
     public function getGPSNow($userId) {
         $imei = $this->getImeiByUser($userId);
         $url = "http://149.50.133.15:5000/gpsnow/" . $imei;
@@ -44,7 +43,7 @@ class Location {
         ];
 
         $context = stream_context_create($options);
-        $response = file_get_contents($url, false, $context);
+        $response = @file_get_contents($url, false, $context);
 
         if ($response === false) {
             error_log("Error al obtener datos del GPS para IMEI $imei");
@@ -52,7 +51,6 @@ class Location {
         }
 
         $data = json_decode($response, true);
-        error_log("GPS response: " . print_r($data, true));
 
         if (!$data || !isset($data[0]['latitude'], $data[0]['longitude'])) {
             return null;
@@ -65,14 +63,14 @@ class Location {
         ];
     }
 
-
-    /**
-     * Método interno para obtener el IMEI del usuario (botón físico)
-     */
     private function getImeiByUser($userId) {
-        // Ejemplo simple: hardcodeado o consultar en DB
-        // Aquí podés hacer una consulta a una tabla `devices` si querés
+        // Ejemplo simple: hardcodeado
         return "4208298709";
+    }
+
+    public function getContactsByUser($userId) {
+        $contactModel = new Contact();
+        return $contactModel->getByUser($userId);
     }
 
     public function __destruct() {

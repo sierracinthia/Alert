@@ -36,16 +36,28 @@ document.getElementById('sendAlertBtn').addEventListener('click', function() {
         fetch('index.php?page=alert', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({latitude: lat, longitude: lng})
+            body: JSON.stringify({
+                source: 'web',       // importante para el backend
+                latitude: lat,
+                longitude: lng,
+                id_user: 1,          // opcional
+                username: 'Cinthia'  // opcional
+            })
         })
-        .then(res => res.json())
-        .then(data => {
-            if(data.status === 'ok'){
-                L.marker([lat, lng]).addTo(map)
-                 .bindPopup('Alerta enviada desde navegador').openPopup();
-                alert(data.message);
-            } else {
-                alert('Error: ' + data.message);
+        .then(res => res.text()) // 👈 truco: leer como texto
+        .then(txt => {
+            console.log("Respuesta cruda del servidor:", txt);
+            try {
+                const data = JSON.parse(txt);
+                if(data.status === 'ok'){
+                    L.marker([lat, lng]).addTo(map)
+                     .bindPopup('Alerta enviada desde navegador').openPopup();
+                    alert(data.message);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch(e) {
+                console.error("No se pudo parsear JSON:", e);
             }
         })
         .catch(err => console.error("Error al enviar alerta:", err));
@@ -59,17 +71,26 @@ document.getElementById('sendDeviceAlertBtn').addEventListener('click', function
     fetch('index.php?page=alert', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({}) // vacío → backend obtiene GPS físico
+        body: JSON.stringify({
+            source: 'device',     // importante para el backend
+            id_user: 1,           // opcional
+            username: 'Cinthia'   // opcional
+        })
     })
-    .then(res => res.json())
-    .then(data => {
-        if(data.status === 'ok'){
-            // Mostrar marcador del GPS físico en el mapa
-            L.marker([data.latitude, data.longitude]).addTo(map)
-             .bindPopup('Alerta enviada desde dispositivo').openPopup();
-            alert(data.message);
-        } else {
-            alert('Error: ' + data.message);
+    .then(res => res.text()) // 👈 truco: leer como texto
+    .then(txt => {
+        console.log("Respuesta cruda del servidor:", txt);
+        try {
+            const data = JSON.parse(txt);
+            if(data.status === 'ok'){
+                L.marker([data.latitude, data.longitude]).addTo(map)
+                 .bindPopup('Alerta enviada desde dispositivo').openPopup();
+                alert(data.message);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch(e) {
+            console.error("No se pudo parsear JSON:", e);
         }
     })
     .catch(err => console.error("Error al enviar alerta:", err));
