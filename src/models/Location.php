@@ -10,16 +10,17 @@ class Location {
         if (!$this->pdo) {
             throw new Exception("No se pudo conectar a la base de datos");
         }
-        
-        date_default_timezone_set('America/Argentina/Buenos_Aires');
-
     }
 
     public function addAlert($userId, $lat, $lng) {
-                $sentAt = date('Y-m-d H:i:s'); // hora local
+        // Aseguramos zona horaria correcta
+        date_default_timezone_set('America/Argentina/Buenos_Aires');
+        $sentAt = date('Y-m-d H:i:s');
 
-        $stmt = $this->pdo->prepare("INSERT INTO alerts (id_user, latitude, longitude) VALUES (?, ?, ?)");
-        $stmt->execute([$userId, $lat, $lng]);
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO alerts (id_user, latitude, longitude, sent_at) VALUES (?, ?, ?, ?)"
+        );
+        $stmt->execute([$userId, $lat, $lng, $sentAt]);
     }
 
     public function getAlertsByUser($userId) {
@@ -66,11 +67,6 @@ class Location {
     private function getImeiByUser($userId) {
         // Ejemplo simple: hardcodeado
         return "4208298709";
-    }
-
-    public function getContactsByUser($userId) {
-        $contactModel = new Contact();
-        return $contactModel->getByUser($userId);
     }
 
     public function __destruct() {

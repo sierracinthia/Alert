@@ -14,9 +14,6 @@ class AlertController {
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $source = $input['source'] ?? null;
 
-        // Determinar usuario
-       //$id_user = $_SESSION['user_id'] ?? 1;           // Usuario de prueba si no hay sesión
-       // $username = $_SESSION['username'] ?? 'UsuarioPrueba';
         $id_user = $_SESSION['user_id'] ?? null;
         $username = $_SESSION['username'] ?? 'Usuario'; 
        
