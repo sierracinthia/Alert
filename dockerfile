@@ -1,20 +1,14 @@
-# Usamos Node.js LTS
-FROM node:18
+# Usamos PHP con Apache
+FROM php:8.1-apache
 
-# Carpeta de trabajo dentro del contenedor
-WORKDIR /app
+# Instalar extensiones necesarias (MySQL, PDO, etc.)
+RUN docker-php-ext-install mysqli pdo pdo_mysql
 
-# Copiamos package.json y package-lock.json primero
-COPY package*.json ./
+# Copiar tu código al contenedor
+COPY . /var/www/html/
 
-# Instalamos dependencias
-RUN npm install
+# Exponer el puerto 8080
+EXPOSE 8080
 
-# Copiamos el resto del código
-COPY . .
-
-# Exponemos el puerto que usará tu API
-EXPOSE 3000
-
-# Comando para arrancar la app
-CMD ["npm", "start"]
+# Comando para iniciar Apache en primer plano
+CMD ["apache2-foreground"]
