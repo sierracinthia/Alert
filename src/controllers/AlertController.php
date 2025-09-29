@@ -45,7 +45,9 @@ class AlertController {
             $locationModel->addAlert($id_user, $latitude, $longitude);
 
             // Obtener contactos del usuario
-            $contacts = $locationModel->getContactsByUser($id_user);
+            
+            $contact = new Contact();
+            $contacts = $contact->getByUser($id_user);
 
             $sendErrors = [];
             foreach ($contacts as $contact) {
