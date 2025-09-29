@@ -1,6 +1,7 @@
 <?php
 
     $imei = "4208298709";
+    $id_user = 1; // Cambiá esto al id_user que corresponde a este dispositivo
     $lastTimestamp = null;
 
     while (true) {
@@ -25,7 +26,8 @@
             if ($lastTimestamp !== null && $currentTimestamp !== $lastTimestamp) {
                 // Botón presionado → enviar alerta
                 $alert = [
-                    "source" => "device"
+                    "source" => "device",
+                    "id_user" => $id_user
                 ];
 
                 $alertContext = stream_context_create([
