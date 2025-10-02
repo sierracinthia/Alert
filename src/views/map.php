@@ -1,8 +1,7 @@
 <h3>Mapa y Envío de Alerta</h3>
 
 <!-- Botones -->
-<button id="sendAlertBtn">📍 Enviar Alerta desde navegador</button>
-<button id="sendDeviceAlertBtn">🔴 Enviar Alerta desde dispositivo</button>
+<button id="sendAlertBtn">📍 Enviar Alerta</button>
 
 <div id="mapid" style="height: 400px; width: 100%; margin-top:10px;"></div>
 
