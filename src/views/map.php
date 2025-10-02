@@ -7,92 +7,59 @@
 <div id="mapid" style="height: 400px; width: 100%; margin-top:10px;"></div>
 
 <script>
-// Inicializar mapa
-var map = L.map('mapid').setView([-34.6037, -58.3816], 13);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-}).addTo(map);
 
-// Mostrar alertas existentes
-<?php if(!empty($alerts)): ?>
-    <?php foreach($alerts as $alert): ?>
-        L.marker([<?= $alert['latitude'] ?>, <?= $alert['longitude'] ?>])
-         .addTo(map)
-         .bindPopup('Alerta enviada: <?= $alert['sent_at'] ?>');
-    <?php endforeach; ?>
-<?php endif; ?>
+    var map = L.map('mapid').setView([-34.6654, -58.7276], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
 
-// --- Enviar alerta desde navegador ---
-document.getElementById('sendAlertBtn').addEventListener('click', function() {
-    if (!navigator.geolocation) {
-        alert('Tu navegador no soporta geolocalización.');
-        return;
-    }
+    <?php if(!empty($alerts)): ?>
+        <?php foreach($alerts as $alert): ?>
+            L.marker([<?= $alert['latitude'] ?>, <?= $alert['longitude'] ?>])
+            .addTo(map)
+            .bindPopup('Alerta enviada: <?= $alert['sent_at'] ?>');
+        <?php endforeach; ?>
+    <?php endif; ?>
 
-    navigator.geolocation.getCurrentPosition(function(position) {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-
-        fetch('index.php?page=alert', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                source: 'web',       // importante para el backend
-                latitude: lat,
-                longitude: lng,
-                id_user: 1,          // opcional
-                username: 'Cinthia'  // opcional
-            })
-        })
-        .then(res => res.text()) // 👈 truco: leer como texto
-        .then(txt => {
-            console.log("Respuesta cruda del servidor:", txt);
-            try {
-                const data = JSON.parse(txt);
-                if(data.status === 'ok'){
-                    L.marker([lat, lng]).addTo(map)
-                     .bindPopup('Alerta enviada desde navegador').openPopup();
-                    alert(data.message);
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            } catch(e) {
-                console.error("No se pudo parsear JSON:", e);
-            }
-        })
-        .catch(err => console.error("Error al enviar alerta:", err));
-    }, function(){
-        alert('No se pudo obtener tu ubicación.');
-    });
-});
-
-// --- Enviar alerta desde botón físico ---
-document.getElementById('sendDeviceAlertBtn').addEventListener('click', function() {
-    fetch('index.php?page=alert', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            source: 'device',     // importante para el backend
-            id_user: 1,           // opcional
-            username: 'Cinthia'   // opcional
-        })
-    })
-    .then(res => res.text()) // 👈 truco: leer como texto
-    .then(txt => {
-        console.log("Respuesta cruda del servidor:", txt);
-        try {
-            const data = JSON.parse(txt);
-            if(data.status === 'ok'){
-                L.marker([data.latitude, data.longitude]).addTo(map)
-                 .bindPopup('Alerta enviada desde dispositivo').openPopup();
-                alert(data.message);
-            } else {
-                alert('Error: ' + data.message);
-            }
-        } catch(e) {
-            console.error("No se pudo parsear JSON:", e);
+    document.getElementById('sendAlertBtn').addEventListener('click', function() {
+        if (!navigator.geolocation) {
+            alert('Tu navegador no soporta geolocalización.');
+            return;
         }
-    })
-    .catch(err => console.error("Error al enviar alerta:", err));
-});
+
+        navigator.geolocation.getCurrentPosition(function(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+
+            fetch('index.php?page=alert', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    source: 'web',
+                    latitude: lat,
+                    longitude: lng,
+                })
+            })
+            .then(res => res.text()) 
+            .then(txt => {
+                console.log("Respuesta cruda del servidor:", txt);
+                try {
+                    const data = JSON.parse(txt);
+                    if(data.status === 'ok'){
+                        L.marker([lat, lng]).addTo(map)
+                        .bindPopup('Alerta enviada desde navegador').openPopup();
+                        alert(data.message);
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                } catch(e) {
+                    console.error("No se pudo parsear JSON:", e);
+                }
+            })
+            .catch(err => console.error("Error al enviar alerta:", err));
+        }, function(){
+            alert('No se pudo obtener tu ubicación.');
+        });
+    });
+
 </script>
