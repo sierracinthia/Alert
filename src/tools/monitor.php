@@ -1,7 +1,7 @@
 <?php
 
     $imei = "4208298709";
-    $id_user = 1; // Cambiá esto al id_user que corresponde a este dispositivo
+    $id_user = 1;
     $lastTimestamp = null;
 
     while (true) {
@@ -24,7 +24,6 @@
             $currentTimestamp = $data[0]['timestamp'];
 
             if ($lastTimestamp !== null && $currentTimestamp !== $lastTimestamp) {
-                // Botón presionado → enviar alerta
                 $alert = [
                     "source" => "device",
                     "id_user" => $id_user
@@ -47,6 +46,6 @@
         echo "[" . date("Y-m-d H:i:s") . "] Error: respuesta inválida o sin timestamp\n";
     }
 
-        sleep(10); // Espera 10 segundos antes de volver a consultar
+        sleep(20);
     }
 ?>
