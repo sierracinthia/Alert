@@ -32,7 +32,7 @@ if (!isset($_SESSION['user_id'])) {
         <button onclick="showTab('alerts')">Historial de Alertas</button>
     </div>
 
-    <!-- Secciones -->
+    <!-- Seccioness -->
 <section id="map" class="tab-section">
     <?php include __DIR__ . '/map.php'; ?>
 </section>
